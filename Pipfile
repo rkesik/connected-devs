@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pygithub = "*"
+fastapi = "*"
+uvloop = "*"
+motor = "*"
+hypercorn = "*"
+pymongo = "*"
+pydantic = "*"
+
+[dev-packages]
+mypy = "*"
+pytest = "*"
+black = "*"
+ipython = "*"
+
+[requires]
+python_version = "3.9"

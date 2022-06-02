@@ -1,0 +1,49 @@
+version: '3'
+services:
+  conencted-backend:
+    build:
+      context: .
+    working_dir: /app
+    volumes:
+      - './app:/app'
+    ports:
+      - 8000:8000
+    # environment:
+    #   PYTHONPATH: "${PYTHONPATH}:/app/"
+    networks:
+      services-network:
+        aliases:
+          - conencted-backend
+    depends_on:
+      - mongo-db
+
+  mongo-db:
+    container_name: mongo
+    restart: always
+    image: mongo:4.0
+    # env_file:
+    #   - .env
+    networks:
+      services-network:
+        aliases:
+          - mongo
+    ports:
+        - "27017:27017"
+
+  mongo-express:
+
+    restart: always
+    image: mongo-express:0.54
+    depends_on:
+        - mongo-db
+    ports:
+      - "8888:8081"
+    networks:
+      services-network:
+        aliases:
+          - express
+
+networks:
+   services-network:
+     name: services-network
+     driver: bridge
