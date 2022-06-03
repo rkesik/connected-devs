@@ -2,15 +2,16 @@ import asyncio
 from typing import List
 from fastapi import Depends
 import uvloop
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 
-from repos.mongo import ConnectedMongoRepo
-from entities import ConnectedIn, ConnectedOut, RealtimeConnected
+from repos.mongo_repo import ConnectedMongoRepo
+from entities import ConnectedOut, RealtimeConnected
 from utils.mongo import MotorClient
 
 from use_case import ConnectedUseCase
 
 db = MotorClient()
+
 
 async def on_startup() -> None:
     await db.connect_client()
@@ -34,31 +35,45 @@ app = FastAPI(
 
 uvloop.install()
 
-# reqister_usecase = RegisterUseCase(repo_adapter=repo.ConnectedMongoRepo, db_client=db)
 realtime_use_case = ConnectedUseCase(repo_adapter=ConnectedMongoRepo)
 
+
 @app.get("/")
-async def health_check(request: Request, use_case=Depends(realtime_use_case.get_db_client)) -> dict:
+async def health_check(
+    request: Request, use_case=Depends(realtime_use_case.get_db_client)
+) -> dict:
     return {"message": "Hello, I am fine."}
 
 
-@app.get("/connected/realtime/{handle_first}/{handle_second}")
-async def connect_devs(handle_first: str, handle_second: str, use_case=Depends(realtime_use_case.get_db_client)) -> RealtimeConnected:
+@app.get("/connected/realtime/{handle_first}/{handle_second}", status_code=status.HTTP_200_OK)
+async def connect_devs(
+    handle_first: str,
+    handle_second: str,
+    use_case=Depends(realtime_use_case.get_db_client),
+) -> RealtimeConnected:
     errors = []
 
-    connected = await use_case.check_if_connected(handle_first, handle_second, errors=errors)
+    connected = await use_case.check_if_connected(
+        handle_first, handle_second, errors=errors
+    )
 
     # At that point we can say that if there are any errors we should brak a flow
     if errors:
-        return {'errors': errors} # status_code 404
+        return {"errors": errors}  # TODO(rkesik): add proper status_code 404
 
     await use_case.register_connection(connected, handle_first, handle_second)
     
+    #TODO(rkesik): we need to ensure proper statuses to be returned 200, 404...
+    
     return RealtimeConnected(**connected.dict())
-        
+
 
 @app.get("/connected/register/{handle_first}/{handle_second}")
-async def get_register(handle_first: str, handle_second: str, use_case=Depends(realtime_use_case.get_db_client)) -> List[ConnectedOut]:
+async def get_register(
+    handle_first: str,
+    handle_second: str,
+    use_case=Depends(realtime_use_case.get_db_client),
+) -> List[ConnectedOut]:
     return await use_case.get_registers(handle_first, handle_second)
 
 

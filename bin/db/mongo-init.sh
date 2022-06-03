@@ -1,3 +1,0 @@
-# mongo --numParallelCollections=1 -d connected_devs -c connections
-
-# todo...

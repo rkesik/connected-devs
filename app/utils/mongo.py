@@ -25,9 +25,7 @@ class MotorClient(metaclass=SingletonMeta):
         self.motor_client: Optional[AsyncIOMotorClient] = None
 
     def __create_client(self) -> AsyncIOMotorClient:
-        self.motor_client = AsyncIOMotorClient(
-            MONGO_DETAILS
-        )
+        self.motor_client = AsyncIOMotorClient(MONGO_DETAILS)
         return self.motor_client
 
     async def get_db_client(self) -> AsyncIOMotorClient:

@@ -1,7 +1,10 @@
 from typing import Optional, List
 
-from motor.motor_asyncio import (AsyncIOMotorClient, AsyncIOMotorCollection,
-                                 AsyncIOMotorDatabase)
+from motor.motor_asyncio import (
+    AsyncIOMotorClient,
+    AsyncIOMotorCollection,
+    AsyncIOMotorDatabase,
+)
 import datetime as dt
 from entities import ConnectedOut, ConnectedIn
 from pydantic import parse_obj_as
@@ -28,21 +31,25 @@ class MongoRepoBase:
 class ConnectedMongoRepo(MongoRepoBase):
     @classmethod
     async def save_register(
-        cls,
-        motor_db: AsyncIOMotorDatabase,
-        connection: ConnectedIn
+        cls, motor_db: AsyncIOMotorDatabase, connection: ConnectedIn
     ) -> ConnectedOut:
-        collection: AsyncIOMotorCollection = await cls.get_collection(motor_db, 'register')
+        collection: AsyncIOMotorCollection = await cls.get_collection(
+            motor_db, "register"
+        )
         data = connection.dict()
-        data['registered_at'] = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+        data["registered_at"] = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
         await collection.insert_one(data)
         return ConnectedOut(**data)
 
     @classmethod
-    async def get_registers(cls, motor_db: AsyncIOMotorDatabase, handle_one: str, handle_two: str) -> List[ConnectedOut]:
-        collection: AsyncIOMotorCollection = await cls.get_collection(motor_db, 'register')
-        # TODO(rkesik): ofc we need to add more control flow, like objects doesnt exists...
-        cursor = collection.find({"devs":[handle_one, handle_two]})
+    async def get_registers(
+        cls, motor_db: AsyncIOMotorDatabase, handle_one: str, handle_two: str
+    ) -> List[ConnectedOut]:
+        collection: AsyncIOMotorCollection = await cls.get_collection(
+            motor_db, "register"
+        )
+        # TODO(rkesik): ofc we need to add more control flow, like objects do not exists exists...
+        cursor = collection.find({"devs": [handle_one, handle_two]})
         _all = []
         async for doc in cursor:
             _all.append(doc)
