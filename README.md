@@ -18,7 +18,23 @@ or we can make global or we can just ContentVars to store threaded separated ins
 Singleton as Motor database client is just to prevent accidently creating new instance we need to ensure that in one thread we will have only one instance.
 
 
-
+                       +------------------+
+                       |    use case      |
+                       +------------------+
+                                |
+             +------------------+---------------------+
+             |                  |                     |
+             V                  V                     V
+    +-----------------+ +------------------+ +-------------------+
+    |   GuthubRepo    | |   TwitterRepo    | |     MongoRepo     |
+    +-----------------+ +------------------+ +-------------------+
+            ^                     ^                    ^
+            |                     |                    |
+    ===========+=====================+====================+================
+            |                     |                    |
+    +--------------------+ +--------------------+ +--------------------+
+    |   TwitterClient    | | GithubClinet       | |   MongoClient      |
+    +--------------------+ +--------------------+ +--------------------+
 
 # What is missing?
 
@@ -50,3 +66,13 @@ Packages, modules that can be a installable packege - something that can serve s
 
 
 ### utilites:
+
+
+### Tests
+  
+  
+```bash
+pipenv install --dev
+cd app
+pytest .
+```

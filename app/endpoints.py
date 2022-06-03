@@ -4,11 +4,11 @@ from fastapi import Depends
 import uvloop
 from fastapi import FastAPI, Request
 
-import repo
-from entities import RealtimeOut, RegisterOut
+from repos.mongo import ConnectedMongoRepo
+from entities import ConnectedIn, ConnectedOut, RealtimeConnected
 from utils.mongo import MotorClient
 
-from use_case import RegisterUseCase, RealtimeUseCase
+from use_case import ConnectedUseCase
 
 db = MotorClient()
 
@@ -35,21 +35,31 @@ app = FastAPI(
 uvloop.install()
 
 # reqister_usecase = RegisterUseCase(repo_adapter=repo.ConnectedMongoRepo, db_client=db)
-realtime_use_case = RealtimeUseCase(repo_adapter=repo.ConnectedMongoRepo)
+realtime_use_case = ConnectedUseCase(repo_adapter=ConnectedMongoRepo)
 
 @app.get("/")
-async def health_check(request: Request, use_case=Depends(realtime_use_case.get_repo_client)) -> dict:
-    await use_case.test()
+async def health_check(request: Request, use_case=Depends(realtime_use_case.get_db_client)) -> dict:
     return {"message": "Hello, I am fine."}
 
 
-@app.post("/connected/realtime/{first_dev}/{second_dev}")
-async def connect_devs(handle_first: str, handle_second: str, ) -> RealtimeOut:
-    ...
+@app.get("/connected/realtime/{handle_first}/{handle_second}")
+async def connect_devs(handle_first: str, handle_second: str, use_case=Depends(realtime_use_case.get_db_client)) -> RealtimeConnected:
+    errors = []
 
-@app.post("/connected/register/{first_dev}/{second_dev}")
-async def get_register(handle_first: str, handle_second: str) -> List[RegisterOut]:
-    ...
+    connected = await use_case.check_if_connected(handle_first, handle_second, errors=errors)
+
+    # At that point we can say that if there are any errors we should brak a flow
+    if errors:
+        return {'errors': errors} # status_code 404
+
+    await use_case.register_connection(connected, handle_first, handle_second)
+    
+    return RealtimeConnected(**connected.dict())
+        
+
+@app.get("/connected/register/{handle_first}/{handle_second}")
+async def get_register(handle_first: str, handle_second: str, use_case=Depends(realtime_use_case.get_db_client)) -> List[ConnectedOut]:
+    return await use_case.get_registers(handle_first, handle_second)
 
 
 if __name__ == "__main__":

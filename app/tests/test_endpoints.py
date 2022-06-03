@@ -6,14 +6,16 @@ client = TestClient(app)
 
 # We can thread that as E2E tests for our application
 
-# TODO(rkesik): make stubs for internal layers (repo, sercices/utils)
+# TODO(rkesik): make stubs for internal layers (repos)
 # TODO(rkesik): compose 2 test suits for each endpoint
 # TODO(rkesik): mock only external resources...
 
 
 # Realtime endpoints tests
 def test_succesfully_get__connected_realtime_endpoint():
-    response = client.get("/connected/realtime")
+    handleone = 'xxx'
+    handletwo = 'yyy'
+    response = client.get(f"/connected/realtime/{handleone}/{handletwo}")
     assert response.status_code == 200
     assert response.json() == {}  # TODO(rkesik): ..finish that
 
